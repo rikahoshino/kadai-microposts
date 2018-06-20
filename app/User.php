@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Notifications\Notifiable;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -77,7 +78,6 @@ public function unfollow($userId)
     }
 }
 
-
 public function is_following($userId) {
     return $this->followings()->where('follow_id', $userId)->exists();
 }
@@ -88,6 +88,43 @@ public function feed_microposts()
         $follow_user_ids[] = $this->id;
         return Micropost::whereIn('user_id', $follow_user_ids);
     }
+    
+    
+public function favorite($micropostId) 
+    {
+        
+        $exist = $this->is_favorites($micropostId);
+            if($exist){
+                return false;
+            } else {
+                $this->favorites()->attach($micropostId);
+                return true;
+            }
+    }
+
+
+public function unfavorite($micropostId)
+    {
+         $exist = $this->is_favorites($micropostId);
+            if($exist){
+                 $this->favorites()->detach($micropostId);
+                return true;
+            } else {
+                return false;
+            }
+        
+    }
+
+public function favorites()
+    {
+        return $this->belongsToMany(Micropost::class, 'favorites', 'user_id', 'favorite_id')->withTimestamps();
+    }
+
+public function is_favorites($micropostId)
+    {
+        return $this->favorites()->where('favorite_id', $micropostId)->exists();
+    }
+
 
 }
 
